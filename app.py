@@ -60,11 +60,40 @@ class Food:
         )
 
 # FUNCTIOS
-def create_food():
+def create_food(snake):
+    """Place food on a random free cell. Returns None if the board is full."""
+    occupied = {tuple(c) for c in snake.coordinates}
+    free_cells = [
+        (col * SPACE_SIZE, row * SPACE_SIZE)
+        for col in range(COLS)
+        for row in range(ROWS)
+        if (col * SPACE_SIZE, row * SPACE_SIZE) not in occupied
+    ]
 
+    if not free_cells:
+        return None # No free cells available
 
-def next_turn():
+    x, y = random.choice(free_cells)
+    return Food(x,y)
 
+def next_turn(snake, food):
+    global direction, score
+
+    # Apply the requested direction once per tick
+    direction = next_direction
+
+    x, y = snake.coordinates[0]
+
+    if direction == "up":
+        y -= SPACE_SIZE
+    elif direction == "down":
+        y += SPACE_SIZE
+    elif direction == "left":
+        y -= SPACE_SIZE
+    elif direction == "right":
+        y += SPACE_SIZE
+
+    snake.coordinates.insert(0, [x, y])
 
 def change_direction():
 
