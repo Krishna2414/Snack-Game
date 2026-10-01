@@ -18,7 +18,7 @@ TOTAL_CELLS = COLS * ROWS
 
 OPPOSITES = {"left": "right", "right": "left", "up": "down", "down": "up"}
 
-#Game state (start_game / restrat_game)
+# Game state (start_game / restart_game)
 window = None
 canvas = None
 label = None
@@ -59,6 +59,7 @@ class Food:
             fill=FOOD_COLOR, tag="food"
         )
 
+
 # FUNCTIOS
 def create_food(snake):
     """Place food on a random free cell. Returns None if the board is full."""
@@ -71,10 +72,11 @@ def create_food(snake):
     ]
 
     if not free_cells:
-        return None # No free cells available
+        return None
 
     x, y = random.choice(free_cells)
-    return Food(x,y)
+    return Food(x, y)
+
 
 def next_turn(snake, food):
     global direction, score
@@ -95,19 +97,126 @@ def next_turn(snake, food):
 
     snake.coordinates.insert(0, [x, y])
 
-def change_direction():
+    square = canvas.create_rectangle(
+        x, y, x + SPACE_SIZE, y + SPACE_SIZE,
+        fill=SNAKE_COLOR, tag="snake"
+    )
+    snake.squares.insert(0, square)
+
+    if x == food.coordinates[0] and y == food.coordinates[1]:
+        score += 1
+        label.config(text="Score: {}".format(score))
+        canvas.delete("food")
+        food = create_food(snake)
+    else:
+        # Remove last part of snake
+        del snake.coordinates[-1]
+        canvas.delete(snake.squares[-1])
+        del snake.squares[-1]
+
+    if check_collision(snake):
+        game_over()
+    elif food is None:
+        game_over(won=True)
+    else:
+        window.after(DELAY_MS, next_turn, snake, food)
 
 
-def check_collision():
+def change_direction(new_direction):
+    global next_direction
+
+    if OPPOSITES[new_direction] != direction:
+        next_direction = new_direction
 
 
-def game_over():
+def check_collision(snake):
+    x, y = snake.coordinates[0]
+
+    # Check if the snake hits the walls
+    if x < 0 or x >= GAME_WIDTH or y < 0 or y >= GAME_HEIGHT:
+        return True
+
+    return [x, y] in snake.coordinates[1:]
+
+
+def game_over(won=False):
+    global game_running
+
+    game_running = False
+    canvas.delete(tk.ALL)
+
+    title = "You won!" if won else "Game Over!"
+    canvas.create_text(
+        canvas.winfo_width() / 2,
+        canvas.winfo_height() / 2,
+        font=("consolas", 30),
+        text=f"{title}\npress R or Space to restart",
+        fill="gold" if won else "red",
+        tag="game_over"
+    )
 
 
 def reset_state():
+    global score, direction, next_direction, snake, food
+
+    score = 0
+    direction = INITIAL_DIRECTION
+    next_direction = INITIAL_DIRECTION
+    label.config(text=f"Score: {score}")
+    canvas.delete(tk.ALL)
+    snake = Snake()
+    food = create_food(snake)
 
 
-def restart_game():
+def restart_game(event):
+    global game_running
+
+    if game_running:
+        return
+
+    reset_state()
+    game_running = True
+    next_turn(snake, food)
 
 
 def start_game():
+    global window, canvas, label, game_running
+    window = tk.Tk()
+    window.title("Snake Game")
+    window.resizable(False, False)
+
+    label = tk.Label(window, text="Score: 0", font=("consolas", 40))
+    label.pack()
+
+    canvas = tk.Canvas(
+        window, bg=BACKGROUND_COLOR, height=GAME_HEIGHT, width=GAME_WIDTH
+    )
+    canvas.pack()
+
+    window.update()
+
+    window_width = window.winfo_width()
+    window_height = window.winfo_height()
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+
+    x = int((screen_width / 2) - (window_width / 2))
+    y = int((screen_height / 2) - (window_height / 2))
+
+    window.geometry(f"{window_width}x{window_height}+{x}+{y}")
+
+    window.bind("<Left>", lambda event: change_direction("left"))
+    window.bind("<Right>", lambda event: change_direction("right"))
+    window.bind("<Up>", lambda event: change_direction("up"))
+    window.bind("<Down>", lambda event: change_direction("down"))
+    window.bind("<r>", restart_game)
+    window.bind("<R>", restart_game)
+    window.bind("<space>", restart_game)
+
+    reset_state()
+    game_running = True
+    next_turn(snake, food)
+    window.mainloop()
+
+    if __name__ == "__main__":
+        start_game()
