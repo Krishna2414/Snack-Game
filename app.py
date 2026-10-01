@@ -10,7 +10,7 @@ BODY_PARTS = 5
 SNAKE_COLOR = "#FF0000"
 FOOD_COLOR = "#00FF00"
 BACKGROUND_COLOR = "#000000"
-INITIAL_DIRECTION = "Right"
+INITIAL_DIRECTION = "right"
 
 COLS = GAME_WIDTH // SPACE_SIZE
 ROWS = GAME_HEIGHT // SPACE_SIZE
@@ -33,7 +33,7 @@ game_running = False
 # CLASSES
 class Snake:
     def __init__(self):
-        self.coordinats = []
+        self.coordinates = []
         self.squares = []
 
         start_x = (COLS // 2) * SPACE_SIZE
@@ -41,9 +41,9 @@ class Snake:
 
         # Head first, body trailing to the left (snake starts moving right)
         for i in range(BODY_PARTS):
-            self.coordinats.append([start_x - i * SPACE_SIZE, start_y])
+            self.coordinates.append([start_x - i * SPACE_SIZE, start_y])
 
-        for x, y in self.coordinats:
+        for x, y in self.coordinates:
             square = canvas.create_rectangle(
                 x, y, x + SPACE_SIZE, y + SPACE_SIZE,
                 fill=SNAKE_COLOR, tag="snake"
@@ -91,9 +91,9 @@ def next_turn(snake, food):
     elif direction == "down":
         y += SPACE_SIZE
     elif direction == "left":
-        y -= SPACE_SIZE
+        x -= SPACE_SIZE
     elif direction == "right":
-        y += SPACE_SIZE
+        x += SPACE_SIZE
 
     snake.coordinates.insert(0, [x, y])
 
@@ -218,5 +218,6 @@ def start_game():
     next_turn(snake, food)
     window.mainloop()
 
-    if __name__ == "__main__":
-        start_game()
+
+if __name__ == "__main__":
+    start_game()
